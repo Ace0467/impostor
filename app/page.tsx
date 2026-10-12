@@ -11,46 +11,6 @@ type Player = {
   secretWord?: string;
 };
 
-const SECRET_BANK = [
-  "Mar",
-  "Luna",
-  "Pizza",
-  "Elefante",
-  "Cielo",
-  "Guitarra",
-  "Fuego",
-  "Nieve",
-  "Pirata",
-  "Piedra",
-  "Bicicleta",
-  "Sombra",
-  "Bota",
-  "Reloj",
-  "Selva",
-  "Pájaro",
-  "Escuela",
-  "Rosa",
-  "Música",
-  "Café",
-  "Montaña",
-  "Lava",
-  "Camión",
-  "Vela",
-  "Cine",
-  "Tigre",
-  "Aventura",
-  "Tren",
-  "Abeja",
-  "Delfín",
-  "Fútbol",
-  "Nube",
-  "Avión",
-  "Bosque",
-  "Pasta",
-  "Lago",
-  "Cactus",
-];
-
 function shuffle<T>(items: T[]) {
   const array = [...items];
   for (let i = array.length - 1; i > 0; i--) {
@@ -60,7 +20,7 @@ function shuffle<T>(items: T[]) {
   return array;
 }
 
-function buildPlayers(names: string[], impostorCount: number): Player[] {
+function buildPlayers(names: string[], impostorCount: number, secretWord: string): Player[] {
   const validNames = names
     .map((name) => name.trim())
     .filter((name) => name.length > 0);
@@ -72,8 +32,6 @@ function buildPlayers(names: string[], impostorCount: number): Player[] {
   const actualImpostorCount = Math.min(impostorCount, validNames.length);
   const shuffledIndices = shuffle(Array.from({ length: validNames.length }, (_, index) => index));
   const impostorIndices = new Set(shuffledIndices.slice(0, actualImpostorCount));
-  const secretWord = SECRET_BANK[Math.floor(Math.random() * SECRET_BANK.length)];
-
   return validNames.map((name, index) => ({
     id: index,
     name,
@@ -95,6 +53,13 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [phase, setPhase] = useState<"setup" | "rules" | "pass" | "reveal" | "done">("setup");
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [secretWord, setSecretWord] = useState("");
+  const [searchMessage, setSearchMessage] = useState("");
+  const [searchSuggestion, setSearchSuggestion] = useState("");
+  const [searchStatus, setSearchStatus] = useState<"idle" | "refine" | "ready">("idle");
+  const [searchError, setSearchError] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   const currentPlayer = players[currentIndex];
   const maxImpostors = getMaxImpostors(playerCount);
@@ -104,9 +69,60 @@ export default function Home() {
       playerCount >= MIN_PLAYERS &&
       impostorCount >= 1 &&
       impostorCount <= maxImpostors &&
-      impostorCount < playerCount,
-    [impostorCount, maxImpostors, playerCount]
+      impostorCount < playerCount &&
+      secretWord.length > 0,
+    [impostorCount, maxImpostors, playerCount, secretWord]
   );
+
+  async function handleTopicSearch() {
+    const query = searchQuery.trim();
+    if (query.length < 3) {
+      setSearchError("Escribí un tema de al menos 3 caracteres.");
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError("");
+    setSearchMessage("");
+    setSearchSuggestion("");
+    setSearchStatus("idle");
+    setSecretWord("");
+
+    try {
+      const response = await fetch("/api/topic", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      const result = (await response.json()) as {
+        status?: "refine" | "ready";
+        message?: string;
+        suggestion?: string;
+        secretWord?: string;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(result.error || "No se pudo completar la búsqueda.");
+      }
+
+      if (result.status === "ready" && result.secretWord) {
+        setSecretWord(result.secretWord);
+        setSearchStatus("ready");
+        setSearchMessage(result.message || "Tema encontrado. La palabra se revelará durante el reparto.");
+      } else {
+        setSearchStatus("refine");
+        setSearchMessage(result.message || "Ese tema es muy general. Probá hacerlo más específico.");
+        setSearchSuggestion(result.suggestion || "");
+      }
+    } catch (caughtError) {
+      setSearchError(
+        caughtError instanceof Error ? caughtError.message : "No se pudo completar la búsqueda."
+      );
+    } finally {
+      setIsSearching(false);
+    }
+  }
 
   function handlePlayerCountChange(delta: number) {
     setPlayerCount((previous) => {
@@ -135,7 +151,12 @@ export default function Home() {
     }
 
     const names = Array.from({ length: playerCount }, (_, index) => `Jugador ${index + 1}`);
-    const builtPlayers = buildPlayers(names, impostorCount);
+    if (!secretWord) {
+      setError("Primero buscá un tema para la partida.");
+      return;
+    }
+
+    const builtPlayers = buildPlayers(names, impostorCount, secretWord);
     setPlayers(builtPlayers);
     setCurrentIndex(0);
     setPhase("pass");
@@ -157,6 +178,12 @@ export default function Home() {
     setCurrentIndex(0);
     setPhase("setup");
     setError("");
+    setSearchQuery("");
+    setSecretWord("");
+    setSearchMessage("");
+    setSearchSuggestion("");
+    setSearchStatus("idle");
+    setSearchError("");
   }
 
   return (
@@ -215,12 +242,67 @@ export default function Home() {
             </div>
           </div>
 
+          <div className="topic-search-card">
+            <label className="field-label" htmlFor="topic-search">
+              Buscá el tema secreto
+            </label>
+            <p className="topic-search-hint">
+              Escribí un tema; si es muy amplio, te ayudamos a especificarlo.
+            </p>
+            <form
+              className="topic-search-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleTopicSearch();
+              }}
+            >
+              <input
+                id="topic-search"
+                className="topic-search-input"
+                type="search"
+                value={searchQuery}
+                maxLength={120}
+                placeholder="Ej. fútbol argentino"
+                onChange={(event) => {
+                  setSearchQuery(event.target.value);
+                  setSecretWord("");
+                  setSearchMessage("");
+                  setSearchSuggestion("");
+                  setSearchStatus("idle");
+                  setSearchError("");
+                }}
+              />
+              <button className="primary-button topic-search-button" type="submit" disabled={isSearching}>
+                {isSearching ? "Buscando…" : "Buscar tema"}
+              </button>
+            </form>
+            {searchMessage ? (
+              <p className={`topic-search-feedback ${searchStatus}`}>{searchMessage}</p>
+            ) : null}
+            {searchSuggestion ? (
+              <button
+                className="topic-suggestion"
+                type="button"
+                onClick={() => {
+                  setSearchQuery(searchSuggestion);
+                  setSecretWord("");
+                  setSearchMessage("");
+                  setSearchSuggestion("");
+                  setSearchStatus("idle");
+                }}
+              >
+                Probar: {searchSuggestion}
+              </button>
+            ) : null}
+            {searchError ? <p className="error topic-search-error">{searchError}</p> : null}
+          </div>
+
           <p className="helper-text">Mínimo 4 jugadores • Máximo 25% impostores</p>
           <p className="helper-text helper-text-small">Estos roles son para toda la partida.</p>
 
           {error ? <p className="error">{error}</p> : null}
 
-          <button className="primary-button" onClick={() => setPhase("rules")} disabled={!canStart}>
+          <button className="primary-button" onClick={() => setPhase("rules")} disabled={!canStart || isSearching}>
             Comenzar partida
           </button>
         </section>
