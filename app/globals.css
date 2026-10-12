@@ -247,12 +247,20 @@ h2 {
 .topic-search-select {
   width: 100%;
   min-height: 50px;
-  padding: 12px 14px;
+  padding: 12px 42px 12px 14px;
   border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 14px;
   outline: none;
   background: rgba(8, 15, 27, 0.78);
   color: var(--text);
+  font-family: var(--font-montserrat), sans-serif;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--primary) 50%), linear-gradient(135deg, var(--primary) 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% - 2px), calc(100% - 12px) calc(50% - 2px);
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
 }
 
 .topic-search-input::placeholder {
