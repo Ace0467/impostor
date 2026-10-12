@@ -104,7 +104,7 @@ Respondé únicamente con el JSON indicado por el esquema.
   let upstream: Response;
   try {
     upstream = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
       {
         method: "POST",
         headers: {
@@ -120,19 +120,17 @@ Respondé únicamente con el JSON indicado por el esquema.
             ],
           },
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          tools: [{ googleSearch: {} }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: "OBJECT",
-              properties: {
-                status: { type: "STRING", enum: ["refine", "ready"] },
-                message: { type: "STRING" },
-                suggestion: { type: "STRING" },
-                secretWord: { type: "STRING" },
+          tools: [
+            {
+              googleSearchRetrieval: {
+                dynamicRetrievalConfig: {
+                  mode: "MODE_DYNAMIC",
+                  dynamicThreshold: 0.2,
+                },
               },
-              required: ["status", "message", "suggestion", "secretWord"],
             },
+          ],
+          generationConfig: {
             temperature: 0.4,
             maxOutputTokens: 220,
           },
