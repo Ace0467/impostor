@@ -57,6 +57,7 @@ textarea {
 .panel-contrast,
 .panel-role {
   background: rgba(8, 16, 29, 0.94);
+  padding: 28px 22px 30px;
 }
 
 .eyebrow {
@@ -227,9 +228,33 @@ h2 {
 
 .subtitle,
 .role-copy {
-  margin-top: 18px;
+  margin-top: 22px;
   color: var(--muted);
   line-height: 1.6;
+}
+
+.role-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  margin: 10px 0 16px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.role-tag.danger {
+  background: rgba(255, 123, 123, 0.14);
+  color: #ffd0d0;
+}
+
+.role-tag.success {
+  background: rgba(105, 224, 180, 0.12);
+  color: #d9fff2;
 }
 
 .badge {
@@ -258,8 +283,8 @@ h2 {
 
 .secret-word,
 .role-word {
-  margin-top: 18px;
-  padding: 26px 18px;
+  margin-top: 0;
+  padding: 30px 20px;
   border-radius: 20px;
   font-size: clamp(2.2rem, 10vw, 3.5rem);
   font-weight: 800;
