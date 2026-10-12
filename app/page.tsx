@@ -82,7 +82,6 @@ function buildPlayers(names: string[], impostorCount: number): Player[] {
 }
 
 export default function Home() {
-  const [namesInput, setNamesInput] = useState("Juan\nMaría\nPedro\nLuna\nTomas");
   const [playerCount, setPlayerCount] = useState(5);
   const [impostorCount, setImpostorCount] = useState(1);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -93,13 +92,10 @@ export default function Home() {
   const currentPlayer = players[currentIndex];
   const maxImpostorCount = Math.max(1, playerCount - 1);
 
-  const canStart = useMemo(() => {
-    const count = namesInput
-      .split("\n")
-      .map((name) => name.trim())
-      .filter(Boolean).length;
-    return playerCount >= 2 && count > 0 && impostorCount >= 1 && impostorCount < playerCount;
-  }, [impostorCount, namesInput, playerCount]);
+  const canStart = useMemo(
+    () => playerCount >= 2 && impostorCount >= 1 && impostorCount < playerCount,
+    [impostorCount, playerCount]
+  );
 
   function handlePlayerCountChange(nextCount: number) {
     setPlayerCount(nextCount);
@@ -107,28 +103,17 @@ export default function Home() {
   }
 
   function handleStart() {
-    const providedNames = namesInput
-      .split("\n")
-      .map((name) => name.trim())
-      .filter(Boolean);
-
-    const finalNames = [...providedNames];
-    while (finalNames.length < playerCount) {
-      finalNames.push(`Jugador ${finalNames.length + 1}`);
-    }
-
-    const names = finalNames.slice(0, playerCount);
-
-    if (names.length < 2) {
+    if (playerCount < 2) {
       setError("Necesitás al menos 2 jugadores para empezar.");
       return;
     }
 
-    if (impostorCount < 1 || impostorCount >= names.length) {
+    if (impostorCount < 1 || impostorCount >= playerCount) {
       setError("La cantidad de impostores debe ser mayor que 0 y menor que la cantidad de jugadores.");
       return;
     }
 
+    const names = Array.from({ length: playerCount }, (_, index) => `Jugador ${index + 1}`);
     const builtPlayers = buildPlayers(names, impostorCount);
     setPlayers(builtPlayers);
     setCurrentIndex(0);
@@ -157,18 +142,7 @@ export default function Home() {
     <main className="app-shell">
       {phase === "setup" && (
         <section className="panel">
-          <p className="eyebrow">Juego local</p>
           <h1>Impostor</h1>
-          <label className="field-label" htmlFor="names">
-            Nombres de los jugadores
-          </label>
-          <textarea
-            id="names"
-            className="names-input"
-            value={namesInput}
-            onChange={(event) => setNamesInput(event.target.value)}
-            placeholder="Juan&#10;María&#10;Pedro"
-          />
 
           <div className="settings-row settings-row-selects">
             <div className="select-group">
