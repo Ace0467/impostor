@@ -249,7 +249,7 @@ export default function Home() {
               <div className="badge danger">IMPOSTOR</div>
               <h2>Tu rol es impostor</h2>
               <p className="role-copy">
-                No sepas la palabra secreta. Intentá disimular y mezclarte con el grupo.
+                No sabés la palabra secreta. Intentá disimular y mezclarte con el grupo.
               </p>
             </>
           ) : (
