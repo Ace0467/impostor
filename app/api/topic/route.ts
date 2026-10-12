@@ -45,6 +45,49 @@ function looksTooSpecific(secretWord: string) {
   return false;
 }
 
+function fallbackTopicResult(query: string, intensity: TopicIntensity): GeminiTopicResult {
+  const normalized = query.toLowerCase();
+  const safeTopics: Record<string, string[]> = {
+    futbol: ["River Plate", "Boca Juniors", "Real Madrid", "Barcelona"],
+    cine: ["Avatar", "Titanic", "El Padrino", "Harry Potter"],
+    musica: ["Queen", "The Beatles", "Shakira", "Soda Stereo"],
+    serie: ["Friends", "Game of Thrones", "Stranger Things", "The Office"],
+    historia: ["Roma", "Napoleón", "Cristóbal Colón", "Tierra Media"],
+    deporte: ["NBA", "Copa Mundial", "Maratón", "Tour de Francia"],
+    animales: ["Tigre", "Delfín", "Águila", "Elefante"],
+    comida: ["Pizza", "Asado", "Sushi", "Helado"],
+    videojuegos: ["Minecraft", "Super Mario", "Pokémon", "Fortnite"],
+    paises: ["Argentina", "Brasil", "Japón", "Italia"],
+    ciudades: ["Buenos Aires", "Madrid", "París", "Tokio"],
+  };
+
+  const matchingKey = Object.keys(safeTopics).find((key) => normalized.includes(key));
+  const options = matchingKey ? safeTopics[matchingKey] : ["Barcelona", "Argentina", "Mario Bros", "Shakira"];
+  const chosen = options[Math.floor(Math.random() * options.length)];
+
+  if (!matchingKey && normalized.length < 4) {
+    return {
+      status: "refine",
+      message: "Ese tema es muy corto o muy amplio. Probá con algo más concreto.",
+      suggestion: "Ejemplo: fútbol argentino, música, cine o historia",
+      secretWord: "",
+    };
+  }
+
+  const intensityMessage = {
+    obscuro: "Buscamos algo más nicho y menos masivo.",
+    "medianamente-conocido": "Buscamos algo conocido pero no demasiado obvio.",
+    conocido: "Buscamos algo muy popular y fácil de reconocer.",
+  }[intensity];
+
+  return {
+    status: "ready",
+    message: `${intensityMessage} Tema encontrado para la partida.`,
+    suggestion: "",
+    secretWord: chosen,
+  };
+}
+
 function parseTopicResult(text: string): GeminiTopicResult | null {
   const cleaned = text.trim().replace(/^```(?:json)?\s*|\s*```$/gi, "");
   const firstBrace = cleaned.indexOf("{");
@@ -167,7 +210,21 @@ Respondé únicamente con el JSON indicado por el esquema.
     if (upstream.status === 401 || upstream.status === 403) {
       return jsonError("La clave del buscador no es válida o no tiene acceso habilitado.", 503);
     }
-    return jsonError("El buscador no pudo procesar el tema. Intentá de nuevo.", 502);
+
+    const fallback = fallbackTopicResult(query, topicIntensity);
+    if (fallback.status === "ready" && typeof fallback.secretWord === "string") {
+      return NextResponse.json({
+        status: "ready",
+        message: fallback.message,
+        secretWord: fallback.secretWord,
+      });
+    }
+
+    return NextResponse.json({
+      status: "refine",
+      message: fallback.message,
+      suggestion: typeof fallback.suggestion === "string" ? fallback.suggestion : "",
+    });
   }
 
   const payload = (await upstream.json()) as {
@@ -183,7 +240,12 @@ Respondé únicamente con el JSON indicado por el esquema.
     .trim();
 
   if (!responseText) {
-    return jsonError("No recibimos una respuesta válida del buscador. Intentá de nuevo.", 502);
+    const fallback = fallbackTopicResult(query, topicIntensity);
+    return NextResponse.json({
+      status: fallback.status,
+      message: fallback.message,
+      ...(fallback.status === "refine" ? { suggestion: fallback.suggestion ?? "" } : { secretWord: fallback.secretWord }),
+    });
   }
 
   const result = parseTopicResult(responseText);
@@ -191,7 +253,12 @@ Respondé únicamente con el JSON indicado por el esquema.
     console.error("Gemini returned an unparseable topic result", {
       responsePreview: responseText.slice(0, 300),
     });
-    return jsonError("No pudimos interpretar los resultados. Intentá con otra búsqueda.", 502);
+    const fallback = fallbackTopicResult(query, topicIntensity);
+    return NextResponse.json({
+      status: fallback.status,
+      message: fallback.message,
+      ...(fallback.status === "refine" ? { suggestion: fallback.suggestion ?? "" } : { secretWord: fallback.secretWord }),
+    });
   }
 
   if (result.status === "refine" && typeof result.message === "string") {
