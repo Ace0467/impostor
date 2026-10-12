@@ -215,10 +215,10 @@ h2 {
 }
 
 .topic-search-controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 170px;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  align-items: end;
+  align-items: stretch;
 }
 
 .topic-search-input {
