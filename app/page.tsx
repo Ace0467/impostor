@@ -302,14 +302,6 @@ export default function Home() {
             }}>
               Nueva partida
             </button>
-            <button className="primary-button ghost-button" onClick={() => {
-              setPlayers([]);
-              setCurrentIndex(0);
-              setPhase("setup");
-              setError("");
-            }}>
-              Terminar partida
-            </button>
           </div>
         </section>
       )}
