@@ -54,6 +54,9 @@ export default function Home() {
   const [phase, setPhase] = useState<"setup" | "rules" | "pass" | "reveal" | "done">("setup");
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [topicIntensity, setTopicIntensity] = useState<"obscuro" | "medianamente-conocido" | "conocido">(
+    "medianamente-conocido"
+  );
   const [secretWord, setSecretWord] = useState("");
   const [searchMessage, setSearchMessage] = useState("");
   const [searchSuggestion, setSearchSuggestion] = useState("");
@@ -92,7 +95,7 @@ export default function Home() {
       const response = await fetch("/api/topic", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, topicIntensity }),
       });
       const result = (await response.json()) as {
         status?: "refine" | "ready";
@@ -256,22 +259,41 @@ export default function Home() {
                 void handleTopicSearch();
               }}
             >
-              <input
-                id="topic-search"
-                className="topic-search-input"
-                type="search"
-                value={searchQuery}
-                maxLength={120}
-                placeholder="Ej. fútbol argentino"
-                onChange={(event) => {
-                  setSearchQuery(event.target.value);
-                  setSecretWord("");
-                  setSearchMessage("");
-                  setSearchSuggestion("");
-                  setSearchStatus("idle");
-                  setSearchError("");
-                }}
-              />
+              <div className="topic-search-controls">
+                <input
+                  id="topic-search"
+                  className="topic-search-input"
+                  type="search"
+                  value={searchQuery}
+                  maxLength={120}
+                  placeholder="Ej. fútbol argentino"
+                  onChange={(event) => {
+                    setSearchQuery(event.target.value);
+                    setSecretWord("");
+                    setSearchMessage("");
+                    setSearchSuggestion("");
+                    setSearchStatus("idle");
+                    setSearchError("");
+                  }}
+                />
+                <label className="topic-search-select-wrap">
+                  <span className="field-label field-label-inline">Nicho</span>
+                  <select
+                    className="topic-search-select"
+                    value={topicIntensity}
+                    onChange={(event) => {
+                      setTopicIntensity(
+                        event.target.value as "obscuro" | "medianamente-conocido" | "conocido"
+                      );
+                    }}
+                    aria-label="Nivel de nicho del tema"
+                  >
+                    <option value="obscuro">Obscuro</option>
+                    <option value="medianamente-conocido">Medianamente conocido</option>
+                    <option value="conocido">Conocido</option>
+                  </select>
+                </label>
+              </div>
               <button className="primary-button topic-search-button" type="submit" disabled={isSearching}>
                 {isSearching ? "Buscando…" : "Buscar tema"}
               </button>
