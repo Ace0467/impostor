@@ -94,7 +94,7 @@ export default function Home() {
   const [impostorCount, setImpostorCount] = useState(1);
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [phase, setPhase] = useState<"setup" | "pass" | "reveal" | "done">("setup");
+  const [phase, setPhase] = useState<"setup" | "rules" | "pass" | "reveal" | "done">("setup");
   const [error, setError] = useState("");
 
   const currentPlayer = players[currentIndex];
@@ -222,7 +222,26 @@ export default function Home() {
 
           {error ? <p className="error">{error}</p> : null}
 
-          <button className="primary-button" onClick={handleStart} disabled={!canStart}>
+          <button className="primary-button" onClick={() => setPhase("rules")} disabled={!canStart}>
+            Ver reglas
+          </button>
+        </section>
+      )}
+
+      {phase === "rules" && (
+        <section className="panel panel-rules">
+          <p className="eyebrow">Reglas</p>
+          <h2>Cómo se juega</h2>
+
+          <ul className="rules-list">
+            <li>Todos tienen un rol para toda la partida, y solo se revelan al pasar el celular.</li>
+            <li>Los inocentes reciben una palabra secreta y deben decir una palabra relacionada.</li>
+            <li>El impostor no sabe la palabra secreta y debe disimular para no ser descubierto.</li>
+            <li>La partida termina cuando se descubre al impostor o cuando queda solo 1 inocente y uno o varios impostores.</li>
+            <li>Si se descubre al impostor, ganan los inocentes. Si logra mezclarse y dejar pocos inocentes, gana el impostor.</li>
+          </ul>
+
+          <button className="primary-button" onClick={handleStart}>
             Comenzar reparto
           </button>
         </section>
@@ -247,7 +266,7 @@ export default function Home() {
 
           {currentPlayer.role === "impostor" ? (
             <>
-              <div className="badge danger">IMPOSTOR</div>
+              <div className="role-word danger">IMPOSTOR</div>
               <h2>Tu rol es impostor</h2>
               <p className="role-copy">
                 No sabés la palabra secreta. Intentá disimular y mezclarte con el grupo.
@@ -255,9 +274,8 @@ export default function Home() {
             </>
           ) : (
             <>
-              <div className="badge success">SECRETO</div>
+              <div className="role-word success">{currentPlayer.secretWord}</div>
               <h2>Tu palabra secreta es:</h2>
-              <div className="secret-word">{currentPlayer.secretWord}</div>
               <p className="role-copy">
                 Decí una palabra relacionada con este tema y tratá de no llamar la atención.
               </p>
@@ -278,9 +296,22 @@ export default function Home() {
             La partida empieza con estos roles. Termina si se descubre al impostor o si solo queda
             1 inocente junto a uno o varios impostores.
           </p>
-          <button className="primary-button" onClick={resetGame}>
-            Nuevo reparto
-          </button>
+
+          <div className="done-actions">
+            <button className="primary-button secondary-button" onClick={() => {
+              resetGame();
+            }}>
+              Nueva partida
+            </button>
+            <button className="primary-button ghost-button" onClick={() => {
+              setPlayers([]);
+              setCurrentIndex(0);
+              setPhase("setup");
+              setError("");
+            }}>
+              Terminar partida
+            </button>
+          </div>
         </section>
       )}
     </main>

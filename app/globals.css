@@ -182,6 +182,17 @@ h2 {
   opacity: 0.82;
 }
 
+.rules-list {
+  margin: 18px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.rules-list li + li {
+  margin-top: 10px;
+}
+
 .primary-button {
   width: 100%;
   margin-top: 24px;
@@ -245,21 +256,49 @@ h2 {
   color: #d9fff2;
 }
 
-.secret-word {
+.secret-word,
+.role-word {
   margin-top: 18px;
   padding: 26px 18px;
   border-radius: 20px;
-  background: rgba(69, 182, 255, 0.12);
-  border: 1px solid rgba(139, 211, 255, 0.24);
-  color: #d7f3ff;
   font-size: clamp(2.2rem, 10vw, 3.5rem);
   font-weight: 800;
   text-align: center;
   letter-spacing: -0.06em;
 }
 
+.role-word.success {
+  background: rgba(69, 182, 255, 0.12);
+  border: 1px solid rgba(139, 211, 255, 0.24);
+  color: #d7f3ff;
+}
+
+.role-word.danger {
+  background: rgba(255, 123, 123, 0.12);
+  border: 1px solid rgba(255, 123, 123, 0.24);
+  color: #ffd1d1;
+}
+
 .panel-finished {
   text-align: center;
+}
+
+.done-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.secondary-button {
+  margin-top: 0;
+}
+
+.ghost-button {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-shadow: none;
 }
 
 @media (max-width: 480px) {
