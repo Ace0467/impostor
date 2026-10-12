@@ -223,7 +223,7 @@ export default function Home() {
           {error ? <p className="error">{error}</p> : null}
 
           <button className="primary-button" onClick={() => setPhase("rules")} disabled={!canStart}>
-            Ver reglas
+            Comenzar partida
           </button>
         </section>
       )}
