@@ -218,6 +218,7 @@ export default function Home() {
           </div>
 
           <p className="helper-text">Mínimo 4 jugadores • Máximo 25% impostores</p>
+          <p className="helper-text helper-text-small">Estos roles son para toda la partida.</p>
 
           {error ? <p className="error">{error}</p> : null}
 
@@ -273,7 +274,10 @@ export default function Home() {
         <section className="panel panel-finished">
           <p className="eyebrow">Listo</p>
           <h2>Todos tienen su rol</h2>
-          <p className="subtitle">La ronda puede empezar.</p>
+          <p className="subtitle">
+            La partida empieza con estos roles. Termina si se descubre al impostor o si solo queda
+            1 inocente junto a uno o varios impostores.
+          </p>
           <button className="primary-button" onClick={resetGame}>
             Nuevo reparto
           </button>
