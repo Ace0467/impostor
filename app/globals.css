@@ -91,7 +91,8 @@ h2 {
 }
 
 .names-input,
-.number-input {
+.number-input,
+.select-input {
   width: 100%;
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 16px;
@@ -113,13 +114,25 @@ h2 {
   margin-top: 18px;
 }
 
+.settings-row-selects {
+  align-items: stretch;
+}
+
+.select-group {
+  flex: 1;
+}
+
 .settings-row .field-label {
   margin: 0;
 }
 
-.number-input {
-  width: 90px;
+.number-input,
+.select-input {
   text-align: center;
+}
+
+.select-input {
+  appearance: none;
 }
 
 .primary-button {

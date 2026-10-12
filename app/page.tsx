@@ -83,6 +83,7 @@ function buildPlayers(names: string[], impostorCount: number): Player[] {
 
 export default function Home() {
   const [namesInput, setNamesInput] = useState("Juan\nMaría\nPedro\nLuna\nTomas");
+  const [playerCount, setPlayerCount] = useState(5);
   const [impostorCount, setImpostorCount] = useState(1);
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -90,20 +91,33 @@ export default function Home() {
   const [error, setError] = useState("");
 
   const currentPlayer = players[currentIndex];
+  const maxImpostorCount = Math.max(1, playerCount - 1);
 
   const canStart = useMemo(() => {
     const count = namesInput
       .split("\n")
       .map((name) => name.trim())
       .filter(Boolean).length;
-    return count > 0 && impostorCount >= 0 && impostorCount < count;
-  }, [impostorCount, namesInput]);
+    return playerCount >= 2 && count > 0 && impostorCount >= 1 && impostorCount < playerCount;
+  }, [impostorCount, namesInput, playerCount]);
+
+  function handlePlayerCountChange(nextCount: number) {
+    setPlayerCount(nextCount);
+    setImpostorCount((previous) => Math.min(previous, Math.max(1, nextCount - 1)));
+  }
 
   function handleStart() {
-    const names = namesInput
+    const providedNames = namesInput
       .split("\n")
       .map((name) => name.trim())
       .filter(Boolean);
+
+    const finalNames = [...providedNames];
+    while (finalNames.length < playerCount) {
+      finalNames.push(`Jugador ${finalNames.length + 1}`);
+    }
+
+    const names = finalNames.slice(0, playerCount);
 
     if (names.length < 2) {
       setError("Necesitás al menos 2 jugadores para empezar.");
@@ -156,19 +170,42 @@ export default function Home() {
             placeholder="Juan&#10;María&#10;Pedro"
           />
 
-          <div className="settings-row">
-            <label className="field-label" htmlFor="impostors">
-              Cantidad de impostores
-            </label>
-            <input
-              id="impostors"
-              type="number"
-              min={1}
-              max={10}
-              value={impostorCount}
-              onChange={(event) => setImpostorCount(Number(event.target.value) || 1)}
-              className="number-input"
-            />
+          <div className="settings-row settings-row-selects">
+            <div className="select-group">
+              <label className="field-label" htmlFor="players">
+                Jugadores
+              </label>
+              <select
+                id="players"
+                className="select-input"
+                value={playerCount}
+                onChange={(event) => handlePlayerCountChange(Number(event.target.value))}
+              >
+                {Array.from({ length: 10 }, (_, index) => index + 2).map((count) => (
+                  <option key={count} value={count}>
+                    {count}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="select-group">
+              <label className="field-label" htmlFor="impostors">
+                Impostores
+              </label>
+              <select
+                id="impostors"
+                className="select-input"
+                value={impostorCount}
+                onChange={(event) => setImpostorCount(Number(event.target.value))}
+              >
+                {Array.from({ length: maxImpostorCount }, (_, index) => index + 1).map((count) => (
+                  <option key={count} value={count}>
+                    {count}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {error ? <p className="error">{error}</p> : null}
