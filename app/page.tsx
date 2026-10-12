@@ -81,8 +81,15 @@ function buildPlayers(names: string[], impostorCount: number): Player[] {
   }));
 }
 
+const MIN_PLAYERS = 4;
+const MAX_PLAYERS = 12;
+
+function getMaxImpostors(playerCount: number) {
+  return Math.floor(playerCount * 0.25);
+}
+
 export default function Home() {
-  const [playerCount, setPlayerCount] = useState(5);
+  const [playerCount, setPlayerCount] = useState(4);
   const [impostorCount, setImpostorCount] = useState(1);
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -90,26 +97,40 @@ export default function Home() {
   const [error, setError] = useState("");
 
   const currentPlayer = players[currentIndex];
-  const maxImpostorCount = Math.max(1, playerCount - 1);
+  const maxImpostors = getMaxImpostors(playerCount);
 
   const canStart = useMemo(
-    () => playerCount >= 2 && impostorCount >= 1 && impostorCount < playerCount,
-    [impostorCount, playerCount]
+    () =>
+      playerCount >= MIN_PLAYERS &&
+      impostorCount >= 1 &&
+      impostorCount <= maxImpostors &&
+      impostorCount < playerCount,
+    [impostorCount, maxImpostors, playerCount]
   );
 
-  function handlePlayerCountChange(nextCount: number) {
-    setPlayerCount(nextCount);
-    setImpostorCount((previous) => Math.min(previous, Math.max(1, nextCount - 1)));
+  function handlePlayerCountChange(delta: number) {
+    setPlayerCount((previous) => {
+      const next = Math.min(MAX_PLAYERS, Math.max(MIN_PLAYERS, previous + delta));
+      setImpostorCount((current) => Math.min(current, getMaxImpostors(next)));
+      return next;
+    });
+  }
+
+  function handleImpostorCountChange(delta: number) {
+    setImpostorCount((previous) => {
+      const next = Math.min(maxImpostors, Math.max(1, previous + delta));
+      return next;
+    });
   }
 
   function handleStart() {
-    if (playerCount < 2) {
-      setError("Necesitás al menos 2 jugadores para empezar.");
+    if (playerCount < MIN_PLAYERS) {
+      setError("La cantidad mínima de jugadores es 4.");
       return;
     }
 
-    if (impostorCount < 1 || impostorCount >= playerCount) {
-      setError("La cantidad de impostores debe ser mayor que 0 y menor que la cantidad de jugadores.");
+    if (impostorCount < 1 || impostorCount > maxImpostors) {
+      setError("La cantidad de impostores no puede superar el 25% de los jugadores.");
       return;
     }
 
@@ -142,45 +163,60 @@ export default function Home() {
     <main className="app-shell">
       {phase === "setup" && (
         <section className="panel">
-          <h1>Impostor</h1>
+          <div className="brand-wrap">
+            <span className="brand-mark">✦</span>
+            <h1>Impostor</h1>
+          </div>
 
-          <div className="settings-row settings-row-selects">
-            <div className="select-group">
-              <label className="field-label" htmlFor="players">
-                Jugadores
-              </label>
-              <select
-                id="players"
-                className="select-input"
-                value={playerCount}
-                onChange={(event) => handlePlayerCountChange(Number(event.target.value))}
-              >
-                {Array.from({ length: 10 }, (_, index) => index + 2).map((count) => (
-                  <option key={count} value={count}>
-                    {count}
-                  </option>
-                ))}
-              </select>
+          <div className="settings-grid">
+            <div className="counter-card">
+              <label className="field-label">Jugadores</label>
+              <div className="stepper" aria-label="Cantidad de jugadores">
+                <button
+                  type="button"
+                  className="stepper-button"
+                  onClick={() => handlePlayerCountChange(-1)}
+                  disabled={playerCount <= MIN_PLAYERS}
+                >
+                  −
+                </button>
+                <span className="stepper-value">{playerCount}</span>
+                <button
+                  type="button"
+                  className="stepper-button"
+                  onClick={() => handlePlayerCountChange(1)}
+                  disabled={playerCount >= MAX_PLAYERS}
+                >
+                  +
+                </button>
+              </div>
             </div>
 
-            <div className="select-group">
-              <label className="field-label" htmlFor="impostors">
-                Impostores
-              </label>
-              <select
-                id="impostors"
-                className="select-input"
-                value={impostorCount}
-                onChange={(event) => setImpostorCount(Number(event.target.value))}
-              >
-                {Array.from({ length: maxImpostorCount }, (_, index) => index + 1).map((count) => (
-                  <option key={count} value={count}>
-                    {count}
-                  </option>
-                ))}
-              </select>
+            <div className="counter-card">
+              <label className="field-label">Impostores</label>
+              <div className="stepper" aria-label="Cantidad de impostores">
+                <button
+                  type="button"
+                  className="stepper-button"
+                  onClick={() => handleImpostorCountChange(-1)}
+                  disabled={impostorCount <= 1}
+                >
+                  −
+                </button>
+                <span className="stepper-value">{impostorCount}</span>
+                <button
+                  type="button"
+                  className="stepper-button"
+                  onClick={() => handleImpostorCountChange(1)}
+                  disabled={impostorCount >= maxImpostors}
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
+
+          <p className="helper-text">Mínimo 4 jugadores • Máximo 25% impostores</p>
 
           {error ? <p className="error">{error}</p> : null}
 
