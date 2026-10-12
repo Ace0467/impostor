@@ -47,16 +47,27 @@ function looksTooSpecific(secretWord: string) {
 
 function fallbackTopicResult(query: string, intensity: TopicIntensity): GeminiTopicResult {
   const normalized = query.toLowerCase();
+  const mentionsPlayer = /(jugador|jugadora|futbolista|atleta|deportista|cantante|actor|actriz|artista|personaje)/i.test(normalized);
+  const mentionsTeam = /(equipo|club|selecci[oó]n|plantel|grupo|banda)/i.test(normalized);
+
   const safeTopics: Record<string, string[]> = {
-    futbol: ["River Plate", "Boca Juniors", "Real Madrid", "Barcelona"],
+    futbol: mentionsPlayer && !mentionsTeam
+      ? ["Diego Maradona", "Lionel Messi", "Gabriel Batistuta", "Sergio Agüero"]
+      : ["River Plate", "Boca Juniors", "Real Madrid", "Barcelona"],
     cine: ["Avatar", "Titanic", "El Padrino", "Harry Potter"],
-    musica: ["Queen", "The Beatles", "Shakira", "Soda Stereo"],
+    musica: mentionsPlayer && !mentionsTeam
+      ? ["Shakira", "Luis Miguel", "Charly García", "Coldplay"]
+      : ["Queen", "The Beatles", "Shakira", "Soda Stereo"],
     serie: ["Friends", "Game of Thrones", "Stranger Things", "The Office"],
     historia: ["Roma", "Napoleón", "Cristóbal Colón", "Tierra Media"],
-    deporte: ["NBA", "Copa Mundial", "Maratón", "Tour de Francia"],
+    deporte: mentionsPlayer && !mentionsTeam
+      ? ["Diego Maradona", "Usain Bolt", "Rafael Nadal", "Marta Vieira da Silva"]
+      : ["NBA", "Copa Mundial", "Maratón", "Tour de Francia"],
     animales: ["Tigre", "Delfín", "Águila", "Elefante"],
     comida: ["Pizza", "Asado", "Sushi", "Helado"],
-    videojuegos: ["Minecraft", "Super Mario", "Pokémon", "Fortnite"],
+    videojuegos: mentionsPlayer && !mentionsTeam
+      ? ["Mario Bros", "Link", "Kratos", "Pac-Man"]
+      : ["Minecraft", "Super Mario", "Pokémon", "Fortnite"],
     paises: ["Argentina", "Brasil", "Japón", "Italia"],
     ciudades: ["Buenos Aires", "Madrid", "París", "Tokio"],
   };
