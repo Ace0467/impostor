@@ -49,10 +49,13 @@ function fallbackTopicResult(query: string, intensity: TopicIntensity): GeminiTo
   const normalized = query.toLowerCase();
   const mentionsPlayer = /(jugador|jugadora|futbolista|atleta|deportista|cantante|actor|actriz|artista|personaje)/i.test(normalized);
   const mentionsTeam = /(equipo|club|selecci[oó]n|plantel|grupo|banda)/i.test(normalized);
+  const mentionsArgentineFootball = /(futbol|fútbol).*(argentin|argentino)|argentin.*(futbol|fútbol)/i.test(normalized);
 
   const safeTopics: Record<string, string[]> = {
     futbol: mentionsPlayer && !mentionsTeam
-      ? ["Diego Maradona", "Lionel Messi", "Gabriel Batistuta", "Sergio Agüero"]
+      ? mentionsArgentineFootball
+        ? ["Diego Maradona", "Gabriel Batistuta", "Leandro Paredes", "Francisco Varallo"]
+        : ["Diego Maradona", "Lionel Messi", "Gabriel Batistuta", "Sergio Agüero"]
       : ["River Plate", "Boca Juniors", "Real Madrid", "Barcelona"],
     cine: ["Avatar", "Titanic", "El Padrino", "Harry Potter"],
     musica: mentionsPlayer && !mentionsTeam
@@ -61,7 +64,9 @@ function fallbackTopicResult(query: string, intensity: TopicIntensity): GeminiTo
     serie: ["Friends", "Game of Thrones", "Stranger Things", "The Office"],
     historia: ["Roma", "Napoleón", "Cristóbal Colón", "Tierra Media"],
     deporte: mentionsPlayer && !mentionsTeam
-      ? ["Diego Maradona", "Usain Bolt", "Rafael Nadal", "Marta Vieira da Silva"]
+      ? mentionsArgentineFootball
+        ? ["Diego Maradona", "Gabriel Batistuta", "Leandro Paredes", "Francisco Varallo"]
+        : ["Diego Maradona", "Usain Bolt", "Rafael Nadal", "Marta Vieira da Silva"]
       : ["NBA", "Copa Mundial", "Maratón", "Tour de Francia"],
     animales: ["Tigre", "Delfín", "Águila", "Elefante"],
     comida: ["Pizza", "Asado", "Sushi", "Helado"],
