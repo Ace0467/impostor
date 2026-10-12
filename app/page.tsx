@@ -83,7 +83,6 @@ function buildPlayers(names: string[], impostorCount: number): Player[] {
 }
 
 const MIN_PLAYERS = 4;
-const MAX_PLAYERS = 12;
 
 function getMaxImpostors(playerCount: number) {
   return Math.floor(playerCount * 0.25);
@@ -111,7 +110,7 @@ export default function Home() {
 
   function handlePlayerCountChange(delta: number) {
     setPlayerCount((previous) => {
-      const next = Math.min(MAX_PLAYERS, Math.max(MIN_PLAYERS, previous + delta));
+      const next = Math.max(MIN_PLAYERS, previous + delta);
       setImpostorCount((current) => Math.min(current, getMaxImpostors(next)));
       return next;
     });
@@ -186,7 +185,6 @@ export default function Home() {
                   type="button"
                   className="stepper-button"
                   onClick={() => handlePlayerCountChange(1)}
-                  disabled={playerCount >= MAX_PLAYERS}
                 >
                   +
                 </button>
