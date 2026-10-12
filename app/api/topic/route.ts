@@ -115,6 +115,12 @@ Respondé únicamente con el JSON indicado por el esquema.
     });
 
     if (upstream.status === 429) {
+      if (/quota|billing|resource_exhausted/i.test(String(providerError?.error?.message ?? ""))) {
+        return jsonError(
+          "Gemini no tiene cuota disponible para esta búsqueda. Revisá los límites y la facturación del proyecto de Google AI.",
+          429
+        );
+      }
       return jsonError("Se alcanzó el límite gratuito temporal de búsquedas. Probá de nuevo más tarde.", 429);
     }
     if (upstream.status === 401 || upstream.status === 403) {
