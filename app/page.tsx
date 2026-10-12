@@ -69,15 +69,16 @@ function buildPlayers(names: string[], impostorCount: number): Player[] {
     return [];
   }
 
-  const shuffledNames = shuffle(validNames);
-  const actualImpostorCount = Math.min(impostorCount, shuffledNames.length);
+  const actualImpostorCount = Math.min(impostorCount, validNames.length);
+  const shuffledIndices = shuffle(Array.from({ length: validNames.length }, (_, index) => index));
+  const impostorIndices = new Set(shuffledIndices.slice(0, actualImpostorCount));
   const secretWord = SECRET_BANK[Math.floor(Math.random() * SECRET_BANK.length)];
 
-  return shuffledNames.map((name, index) => ({
+  return validNames.map((name, index) => ({
     id: index,
     name,
-    role: index < actualImpostorCount ? "impostor" : "secret",
-    secretWord: index < actualImpostorCount ? undefined : secretWord,
+    role: impostorIndices.has(index) ? "impostor" : "secret",
+    secretWord: impostorIndices.has(index) ? undefined : secretWord,
   }));
 }
 
