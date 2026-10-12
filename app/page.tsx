@@ -266,7 +266,6 @@ export default function Home() {
 
           {currentPlayer.role === "impostor" ? (
             <>
-              <div className="role-tag danger">Impostor</div>
               <div className="role-word danger">IMPOSTOR</div>
               <p className="role-copy">
                 No sabés la palabra secreta. Intentá disimular y mezclarte con el grupo.
